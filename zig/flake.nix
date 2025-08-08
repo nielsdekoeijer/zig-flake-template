@@ -35,7 +35,10 @@
           overlays = [
             (final: prev: {
               zig = zig.packages.${system}."master";
-              zls = zls.packages.${system}.default;
+              zls = prev.zls.overrideAttrs (old: {
+                nativeBuildInputs = (old.nativeBuildInputs or [ ])
+                  ++ [ final.zig ];
+              });
             })
           ];
         };
