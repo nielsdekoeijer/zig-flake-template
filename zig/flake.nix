@@ -9,17 +9,17 @@
     utils.url = "github:numtide/flake-utils";
 
     # grab zig overlay for zig
-    zig.url = "github:mitchellh/zig-overlay";
+    zig-flake.url = "github:mitchellh/zig-overlay";
 
     # put our zig into zls to ensure it matches
-    zls = {
-      url = "github:zigtools/zls";
+    zls-flake = {
+      url = "github:zigtools/zls?ref=master";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.zig-overlay.follows = "zig";
+      inputs.zig-overlay.follows = "zig-flake";
     };
   };
 
-  outputs = { self, nixpkgs, utils, zig, zls }:
+  outputs = { self, nixpkgs, utils, zig-flake, zls-flake }:
     utils.lib.eachSystem [
       "x86_64-linux"
       "aarch64-linux"
@@ -31,11 +31,12 @@
         # packages for the given system
         pkgs = import nixpkgs {
           inherit system;
+
           # use overlays
           overlays = [
             (final: prev: {
-              zig = zig.packages.${system}."master";
-              zls = prev.zls.overrideAttrs (old: {
+              zig = zig-flake.packages.${system}."master";
+              zls = zls-flake.packages.${system}.default.overrideAttrs (old: {
                 nativeBuildInputs = (old.nativeBuildInputs or [ ])
                   ++ [ final.zig ];
               });
